@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Кибер-Змей 3000</title>
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
@@ -81,7 +80,10 @@
             -webkit-backdrop-filter: blur(10px);
             padding: 20px;
             box-sizing: border-box;
-            overflow-y: auto;
+        }
+        
+        #stats-screen {
+             overflow-y: auto;
         }
 
         .hidden {
@@ -150,8 +152,13 @@
         .score-value { color: var(--primary-color); }
         .highscore-value { color: var(--secondary-color); }
 
-        #stats-content, #pause-menu, #game-over-screen, #confirm-modal-content {
+        #stats-content, #game-over-screen, #confirm-modal-content {
              animation: fadeIn 0.5s ease;
+        }
+        
+        #stats-content {
+            width: 100%;
+            max-width: 500px;
         }
         
         #stats-content p, #confirm-modal-content p {
@@ -182,7 +189,7 @@
             width: 100%;
             padding: 10px 0;
             display: flex;
-            justify-content: space-evenly;
+            justify-content: center;
             align-items: center;
             z-index: 6;
             pointer-events: none;
@@ -194,21 +201,21 @@
                 ". up ."
                 "left middle right"
                 ". down .";
-            gap: 5px;
+            gap: 8px;
             pointer-events: auto;
         }
 
         .d-pad-button {
-            width: clamp(50px, 12vw, 60px);
-            height: clamp(50px, 12vw, 60px);
+            width: clamp(65px, 16vw, 80px);
+            height: clamp(65px, 16vw, 80px);
             background-color: var(--d-pad-color);
             border: 2px solid var(--d-pad-shadow);
-            border-radius: 10px;
+            border-radius: 15px;
             display: flex;
             justify-content: center;
             align-items: center;
             color: var(--primary-color);
-            font-size: clamp(20px, 5vw, 24px);
+            font-size: clamp(24px, 6vw, 30px);
             box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
             transition: all 0.1s ease;
         }
@@ -224,25 +231,6 @@
         #d-pad-left { grid-area: left; }
         #d-pad-right { grid-area: right; }
 
-        .action-buttons-container {
-             pointer-events: auto;
-        }
-        
-        .control-button {
-            background: rgba(42, 42, 58, 0.8);
-            border: 1px solid var(--d-pad-shadow);
-            color: var(--primary-color);
-            width: clamp(60px, 15vw, 70px);
-            height: clamp(60px, 15vw, 70px);
-            border-radius: 50%;
-            font-size: clamp(20px, 5vw, 24px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
-        }
-        
         #difficulty-selector {
             display: flex;
             flex-wrap: wrap;
@@ -297,24 +285,11 @@
             height: 250px;
         }
 
-        #music-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: clamp(20px, 5vw, 24px);
-            cursor: pointer;
-            z-index: 11;
-            background: none;
-            border: none;
-            color: var(--text-color);
-        }
-
         #stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: 1fr;
             gap: 20px;
             width: 100%;
-            max-width: 800px;
             margin-bottom: 20px;
         }
 
@@ -363,13 +338,6 @@
                 <button id="stats-button" class="button">Статистика</button>
             </div>
 
-            <div id="pause-menu" class="ui-overlay hidden">
-                <h1 class="title" style="font-size: 4rem;">Пауза</h1>
-                <button id="resume-button" class="button">Продолжить</button>
-                <button id="restart-pause-button" class="button">Начать заново</button>
-                <button id="main-menu-pause-button" class="button">Главное меню</button>
-            </div>
-
             <div id="stats-screen" class="ui-overlay hidden">
                 <div id="stats-content">
                     <h1 class="title" style="font-size: 3rem;">Статистика</h1>
@@ -406,7 +374,6 @@
 
             <!-- Игровое поле -->
             <canvas id="gameCanvas"></canvas>
-             <button id="music-toggle">🔇</button>
         </div>
         
         <!-- Кнопки управления -->
@@ -416,9 +383,6 @@
                 <div id="d-pad-left" class="d-pad-button">◄</div>
                 <div id="d-pad-right" class="d-pad-button">►</div>
                 <div id="d-pad-down" class="d-pad-button">▼</div>
-            </div>
-            <div class="action-buttons-container">
-                 <button id="pause-button" class="control-button" title="Пауза (P)">❚❚</button>
             </div>
         </div>
     </div>
@@ -431,7 +395,6 @@
             const gameContainer = document.getElementById('game-container');
             const mainMenu = document.getElementById('main-menu');
             const statsScreen = document.getElementById('stats-screen');
-            const pauseMenu = document.getElementById('pause-menu');
             const gameOverScreen = document.getElementById('game-over-screen');
             const confirmModal = document.getElementById('confirm-modal');
             const hud = document.getElementById('hud');
@@ -440,12 +403,8 @@
             const statsButton = document.getElementById('stats-button');
             const statsBackButton = document.getElementById('stats-back-button');
             const resetStatsButton = document.getElementById('reset-stats-button');
-            const resumeButton = document.getElementById('resume-button');
-            const restartPauseButton = document.getElementById('restart-pause-button');
-            const mainMenuPauseButton = document.getElementById('main-menu-pause-button');
             const playAgainButton = document.getElementById('play-again-button');
             const mainMenuGameoverButton = document.getElementById('main-menu-gameover-button');
-            const pauseButton = document.getElementById('pause-button');
             const confirmYesButton = document.getElementById('confirm-yes-button');
             const confirmNoButton = document.getElementById('confirm-no-button');
             const dPadUp = document.getElementById('d-pad-up');
@@ -459,13 +418,12 @@
             const statsGrid = document.getElementById('stats-grid');
             const confirmModalMessage = document.getElementById('confirm-modal-message');
             const difficultySelector = document.getElementById('difficulty-selector');
-            const musicToggleButton = document.getElementById('music-toggle');
 
             // --- Конфигурация игры ---
             let gridSize; 
             const tileCountX = 30; 
             const tileCountY = 30; 
-            let snake, food, obstacles, score, direction, dx, dy, isPaused, isGameOver, animationFrameId;
+            let snake, food, obstacles, score, direction, dx, dy, isGameOver, animationFrameId;
             
             const difficultySettings = {
                 easy:   { speed: 150, obstacles: 0.01 },
@@ -477,7 +435,6 @@
             let currentSpeed = initialSpeed;
             let lastUpdateTime = 0;
             let confirmCallback = null;
-            let audioStarted = false;
             let isBannerVisible = false;
 
             // --- Статистика ---
@@ -487,30 +444,6 @@
                 normal: { highscore: 0, gamesPlayed: 0, foodEaten: 0 },
                 hard: { highscore: 0, gamesPlayed: 0, foodEaten: 0 }
             });
-
-            // --- Музыка ---
-            const synth = new Tone.FMSynth({
-                harmonicity: 3, modulationIndex: 10, detune: 0,
-                oscillator: { type: "sine" },
-                envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.5 },
-                modulation: { type: "square" },
-                modulationEnvelope: { attack: 0.5, decay: 0.01, sustain: 1, release: 0.5 }
-            }).toDestination();
-            const reverb = new Tone.Reverb(0.5).toDestination();
-            synth.connect(reverb);
-            
-            const musicPatterns = [
-                ['C2', 'G2', 'C3', 'D3'], ['A#1', 'F2', 'A#2', 'C3'], ['F1', 'C2', 'F2', 'G#2']
-            ];
-            let currentPatternIndex = 0;
-            const musicLoop = new Tone.Sequence((time, note) => {
-                synth.triggerAttackRelease(note, '8n', time);
-            }, musicPatterns[0], '4n');
-            
-            Tone.Transport.scheduleRepeat(time => {
-                currentPatternIndex = (currentPatternIndex + 1) % musicPatterns.length;
-                musicLoop.events = musicPatterns[currentPatternIndex];
-            }, '4m');
 
             // --- Инициализация ---
             async function init() {
@@ -534,22 +467,17 @@
 
             // --- Управление экранами и рекламой ---
             function showScreen(screenName) {
-                [mainMenu, statsScreen, pauseMenu, gameOverScreen, confirmModal, hud, controlsContainer, canvas].forEach(el => {
+                [mainMenu, statsScreen, gameOverScreen, confirmModal, hud, controlsContainer, canvas].forEach(el => {
                     if (el) el.classList.add('hidden');
                 });
 
-                const nonGameScreens = ['main', 'stats', 'pause', 'gameover', 'confirm'];
-                if (nonGameScreens.includes(screenName)) {
-                    showBannerAd();
-                } else {
-                    hideBannerAd();
-                }
+                // Баннер показывается на всех экранах
+                showBannerAd();
 
                 switch (screenName) {
                     case 'main': mainMenu.classList.remove('hidden'); break;
                     case 'stats': updateStatsDisplay(); statsScreen.classList.remove('hidden'); break;
                     case 'game': hud.classList.remove('hidden'); controlsContainer.classList.remove('hidden'); canvas.classList.remove('hidden'); break;
-                    case 'pause': pauseMenu.classList.remove('hidden'); break;
                     case 'gameover': gameOverScreen.classList.remove('hidden'); break;
                     case 'confirm': confirmModal.classList.remove('hidden'); break;
                 }
@@ -562,18 +490,10 @@
                         .catch(error => console.error("Banner Ad Error:", error));
                 }
             }
-
-            function hideBannerAd() {
-                if (typeof vkBridge !== 'undefined' && vkBridge.supports('VKWebAppHideBannerAd') && isBannerVisible) {
-                     vkBridge.send('VKWebAppHideBannerAd')
-                        .then(() => isBannerVisible = false)
-                        .catch(error => console.error("Banner Ad Error:", error));
-                }
-            }
-
+            
             // --- Игровой процесс ---
             function startGame() {
-                isGameOver = false; isPaused = false; score = 0;
+                isGameOver = false; score = 0;
                 initialSpeed = difficultySettings[currentDifficulty].speed;
                 currentSpeed = initialSpeed;
                 direction = 'right'; dx = 1; dy = 0;
@@ -590,7 +510,7 @@
             }
             
             function gameLoop(currentTime) {
-                if (isPaused || isGameOver) return;
+                if (isGameOver) return;
                 animationFrameId = requestAnimationFrame(gameLoop);
                 if (lastUpdateTime === 0) lastUpdateTime = currentTime;
                 const deltaTime = currentTime - lastUpdateTime;
@@ -633,9 +553,6 @@
                 saveStats();
                 showScreen('gameover');
             }
-
-            function pauseGame() { if (!isGameOver) { isPaused = true; showScreen('pause'); } }
-            function resumeGame() { isPaused = false; showScreen('game'); lastUpdateTime = 0; gameLoop(performance.now()); }
 
             // --- Генерация объектов ---
             function generateFood() {
@@ -685,13 +602,12 @@
             
             // --- Управление ---
             function changeDirection(newDx, newDy) {
-                if (isPaused || isGameOver || (dx === -newDx && dy === -newDy)) return;
+                if (isGameOver || (dx === -newDx && dy === -newDy)) return;
                 dx = newDx; dy = newDy;
             }
 
             function handleKeyDown(e) {
                 const key = e.key.toLowerCase();
-                if(key === 'p') { isPaused ? resumeGame() : pauseGame(); return; }
                 switch (key) {
                     case 'arrowup': case 'w': changeDirection(0, -1); break;
                     case 'arrowdown': case 's': changeDirection(0, 1); break;
@@ -724,29 +640,28 @@
                 const dataToSave = JSON.stringify(stats);
                 try {
                     if (typeof vkBridge !== 'undefined' && vkBridge.supports('VKWebAppStorageSet')) {
-                        await vkBridge.send('VKWebAppStorageSet', { key: 'cyberSnake3000_stats_v2', value: dataToSave });
+                        await vkBridge.send('VKWebAppStorageSet', { key: 'cyberSnake3000_stats_v3', value: dataToSave });
                     } else {
-                        localStorage.setItem('cyberSnake3000_stats_v2', dataToSave); 
+                        localStorage.setItem('cyberSnake3000_stats_v3', dataToSave); 
                     }
                 } catch (e) {
                     console.error("Не удалось сохранить статистику. Fallback to localStorage.", e);
-                    localStorage.setItem('cyberSnake3000_stats_v2', dataToSave);
+                    localStorage.setItem('cyberSnake3000_stats_v3', dataToSave);
                 }
             }
             async function loadStats() {
                 try {
                     let data = null;
                     if (typeof vkBridge !== 'undefined' && vkBridge.supports('VKWebAppStorageGet')) {
-                        const vkData = await vkBridge.send('VKWebAppStorageGet', { keys: ['cyberSnake3000_stats_v2'] });
+                        const vkData = await vkBridge.send('VKWebAppStorageGet', { keys: ['cyberSnake3000_stats_v3'] });
                         if (vkData.keys && vkData.keys[0].value) {
                             data = JSON.parse(vkData.keys[0].value);
                         }
                     } 
                     if (!data) {
-                        data = JSON.parse(localStorage.getItem('cyberSnake3000_stats_v2'));
+                        data = JSON.parse(localStorage.getItem('cyberSnake3000_stats_v3'));
                     }
                     stats = data && typeof data === 'object' ? data : defaultStats();
-                    // Убедимся, что все уровни сложности присутствуют
                     for (const diff in defaultStats()) {
                         if (!stats[diff]) {
                             stats[diff] = defaultStats()[diff];
@@ -778,25 +693,12 @@
                 document.addEventListener('keydown', handleKeyDown);
                 document.addEventListener('contextmenu', e => e.preventDefault());
 
-                playButton.addEventListener('click', async () => {
-                    if (!audioStarted) {
-                        try {
-                           await Tone.start();
-                           audioStarted = true;
-                        } catch(e) { console.error('Could not start audio context', e); }
-                    }
-                    startGame();
-                });
-
+                playButton.addEventListener('click', startGame);
                 statsButton.addEventListener('click', () => showScreen('stats'));
                 statsBackButton.addEventListener('click', () => showScreen('main'));
                 resetStatsButton.addEventListener('click', resetAllStats);
-                resumeButton.addEventListener('click', resumeGame);
-                restartPauseButton.addEventListener('click', startGame);
-                mainMenuPauseButton.addEventListener('click', () => showScreen('main'));
                 playAgainButton.addEventListener('click', startGame);
                 mainMenuGameoverButton.addEventListener('click', () => showScreen('main'));
-                pauseButton.addEventListener('click', () => { isPaused ? resumeGame() : pauseGame(); });
                 confirmYesButton.addEventListener('click', () => { if (confirmCallback) confirmCallback(); });
                 confirmNoButton.addEventListener('click', () => showScreen('stats'));
                 
@@ -811,22 +713,6 @@
                         currentDifficulty = button.dataset.difficulty;
                         document.querySelectorAll('.difficulty-button').forEach(btn => btn.classList.remove('selected'));
                         button.classList.add('selected');
-                    }
-                });
-
-                musicToggleButton.addEventListener('click', async () => {
-                    if (!audioStarted) {
-                        await Tone.start();
-                        audioStarted = true;
-                    }
-                    if (Tone.Transport.state === 'started') {
-                        Tone.Transport.stop();
-                        musicLoop.stop();
-                        musicToggleButton.textContent = '🔇';
-                    } else {
-                        Tone.Transport.start();
-                        musicLoop.start(0);
-                        musicToggleButton.textContent = '🎵';
                     }
                 });
             }
