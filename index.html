@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Кибер-Змей 3000</title>
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
@@ -32,20 +33,27 @@
             background-color: var(--background-color);
             color: var(--text-color);
             font-family: 'Orbitron', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             user-select: none;
-            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            touch-action: none;
         }
 
-        #game-container {
+        #game-wrapper {
             width: 100%;
             height: 100%;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #game-container {
+            width: 100%;
+            display: flex;
             justify-content: center;
             align-items: center;
+            flex-grow: 1;
             position: relative;
         }
 
@@ -73,6 +81,7 @@
             -webkit-backdrop-filter: blur(10px);
             padding: 20px;
             box-sizing: border-box;
+            overflow-y: auto;
         }
 
         .hidden {
@@ -80,11 +89,11 @@
         }
 
         .title {
-            font-size: clamp(2.5rem, 10vw, 5rem);
+            font-size: clamp(2rem, 8vw, 4rem);
             font-weight: 700;
             color: var(--primary-color);
             text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--text-color), 0 0 30px var(--secondary-color);
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             animation: flicker 1.5s infinite alternate;
         }
 
@@ -92,13 +101,13 @@
             background: transparent;
             border: 2px solid var(--primary-color);
             color: var(--primary-color);
-            padding: 15px 30px;
+            padding: clamp(10px, 2vw, 15px) clamp(20px, 4vw, 30px);
             font-family: 'Orbitron', sans-serif;
-            font-size: clamp(1rem, 4vw, 1.5rem);
+            font-size: clamp(0.8rem, 3vw, 1.2rem);
             cursor: pointer;
             border-radius: 5px;
             margin: 10px;
-            min-width: 250px;
+            min-width: 200px;
             text-transform: uppercase;
             transition: all 0.3s ease;
             box-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color) inset;
@@ -116,12 +125,6 @@
             cursor: not-allowed;
             box-shadow: none;
         }
-        
-        .button:disabled:hover {
-             background: transparent;
-             color: #555;
-             box-shadow: none;
-        }
 
         #hud {
             position: absolute;
@@ -133,7 +136,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: clamp(1rem, 4vw, 1.5rem);
+            font-size: clamp(0.8rem, 3vw, 1.2rem);
             z-index: 5;
             pointer-events: none;
         }
@@ -163,9 +166,6 @@
         
         #game-over-screen h2 {
             font-size: clamp(2rem, 8vw, 4rem);
-            color: var(--obstacle-color);
-            text-shadow: 0 0 10px var(--obstacle-color);
-            margin-bottom: 10px;
         }
         
         #final-score {
@@ -179,9 +179,8 @@
         }
         
         #controls-container {
-            position: absolute;
-            bottom: 10px; /* Скорректировано для баннера */
             width: 100%;
+            padding: 10px 0;
             display: flex;
             justify-content: space-evenly;
             align-items: center;
@@ -200,8 +199,8 @@
         }
 
         .d-pad-button {
-            width: 60px;
-            height: 60px;
+            width: clamp(50px, 12vw, 60px);
+            height: clamp(50px, 12vw, 60px);
             background-color: var(--d-pad-color);
             border: 2px solid var(--d-pad-shadow);
             border-radius: 10px;
@@ -209,7 +208,7 @@
             justify-content: center;
             align-items: center;
             color: var(--primary-color);
-            font-size: 24px;
+            font-size: clamp(20px, 5vw, 24px);
             box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
             transition: all 0.1s ease;
         }
@@ -225,7 +224,7 @@
         #d-pad-left { grid-area: left; }
         #d-pad-right { grid-area: right; }
 
-        .pause-button-container {
+        .action-buttons-container {
              pointer-events: auto;
         }
         
@@ -233,20 +232,110 @@
             background: rgba(42, 42, 58, 0.8);
             border: 1px solid var(--d-pad-shadow);
             color: var(--primary-color);
-            width: 70px;
-            height: 70px;
+            width: clamp(60px, 15vw, 70px);
+            height: clamp(60px, 15vw, 70px);
             border-radius: 50%;
-            font-size: 24px;
+            font-size: clamp(20px, 5vw, 24px);
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
             box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
         }
-        .control-button:active {
-            transform: scale(0.95);
+        
+        #difficulty-selector {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .difficulty-button {
+            border: 2px solid transparent;
+            background: var(--d-pad-color);
+            color: var(--text-color);
+            padding: 10px 20px;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
         
+        .difficulty-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: var(--primary-color);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+            z-index: 0;
+        }
+
+        .difficulty-button:hover::before {
+            width: 250px;
+            height: 250px;
+        }
+        
+        .difficulty-button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .difficulty-button.selected {
+            border-color: var(--primary-color);
+            color: var(--background-color);
+        }
+
+        .difficulty-button.selected::before {
+            width: 250px;
+            height: 250px;
+        }
+
+        #music-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: clamp(20px, 5vw, 24px);
+            cursor: pointer;
+            z-index: 11;
+            background: none;
+            border: none;
+            color: var(--text-color);
+        }
+
+        #stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+
+        .stats-card {
+            background: var(--d-pad-color);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--d-pad-shadow);
+        }
+
+        .stats-card h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            text-transform: uppercase;
+        }
+        
+        .stats-card p {
+            margin: 5px 0;
+            font-size: clamp(0.8rem, 2.5vw, 1rem);
+        }
+
         @keyframes flicker {
             0%, 100% { text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--text-color), 0 0 30px var(--secondary-color); color: var(--primary-color); }
             50% { text-shadow: 0 0 15px var(--primary-color), 0 0 25px var(--text-color), 0 0 40px var(--secondary-color); color: var(--text-color); }
@@ -260,57 +349,65 @@
 </head>
 <body>
 
-    <div id="game-container">
-        <!-- Экраны интерфейса -->
-        <div id="main-menu" class="ui-overlay">
-            <h1 class="title">КИБЕР-ЗМЕЙ 3000</h1>
-            <button id="play-button" class="button">Играть</button>
-            <button id="stats-button" class="button">Статистика</button>
-        </div>
-
-        <div id="pause-menu" class="ui-overlay hidden">
-            <h1 class="title" style="font-size: 4rem;">Пауза</h1>
-            <button id="resume-button" class="button">Продолжить</button>
-            <button id="restart-pause-button" class="button">Начать заново</button>
-            <button id="main-menu-pause-button" class="button">Главное меню</button>
-        </div>
-
-        <div id="stats-screen" class="ui-overlay hidden">
-            <div id="stats-content">
-                <h1 class="title" style="font-size: 4rem;">Статистика</h1>
-                <p>Лучший счет: <span id="stats-best-score">0</span></p>
-                <p>Всего игр сыграно: <span id="stats-games-played">0</span></p>
-                <p>Всего еды съедено: <span id="stats-food-eaten">0</span></p>
-                <button id="stats-back-button" class="button">Назад</button>
-                 <button id="reset-stats-button" class="button" style="border-color: var(--obstacle-color); color: var(--obstacle-color);">Сбросить</button>
+    <div id="game-wrapper">
+        <div id="game-container">
+            <!-- Экраны интерфейса -->
+            <div id="main-menu" class="ui-overlay">
+                <h1 class="title">КИБЕР-ЗМЕЙ 3000</h1>
+                <div id="difficulty-selector">
+                    <button class="difficulty-button" data-difficulty="easy"><span>Новичок</span></button>
+                    <button class="difficulty-button selected" data-difficulty="normal"><span>Профи</span></button>
+                    <button class="difficulty-button" data-difficulty="hard"><span>Киберпанк</span></button>
+                </div>
+                <button id="play-button" class="button">Играть</button>
+                <button id="stats-button" class="button">Статистика</button>
             </div>
-        </div>
-        
-        <div id="game-over-screen" class="ui-overlay hidden">
-            <h2>ИГРА ОКОНЧЕНА</h2>
-            <p id="final-score">Счет: <span>0</span></p>
-            <p id="new-highscore-msg" class="hidden">НОВЫЙ РЕКОРД!</p>
-            <button id="play-again-button" class="button">Играть снова</button>
-            <button id="main-menu-gameover-button" class="button">Главное меню</button>
-        </div>
-        
-        <div id="confirm-modal" class="ui-overlay hidden">
-            <div id="confirm-modal-content">
-                <h2 class="title" style="font-size: 2.5rem;">Подтверждение</h2>
-                <p id="confirm-modal-message"></p>
-                <button id="confirm-yes-button" class="button">Да</button>
-                <button id="confirm-no-button" class="button">Нет</button>
+
+            <div id="pause-menu" class="ui-overlay hidden">
+                <h1 class="title" style="font-size: 4rem;">Пауза</h1>
+                <button id="resume-button" class="button">Продолжить</button>
+                <button id="restart-pause-button" class="button">Начать заново</button>
+                <button id="main-menu-pause-button" class="button">Главное меню</button>
             </div>
-        </div>
 
-        <!-- Игровой HUD -->
-        <div id="hud" class="hidden">
-           <div class="hud-item">Счет: <span id="score" class="score-value">0</span></div>
-           <div class="hud-item">Рекорд: <span id="highscore" class="highscore-value">0</span></div>
-        </div>
+            <div id="stats-screen" class="ui-overlay hidden">
+                <div id="stats-content">
+                    <h1 class="title" style="font-size: 3rem;">Статистика</h1>
+                    <div id="stats-grid">
+                        <!-- Карточки статистики будут вставлены здесь -->
+                    </div>
+                    <button id="stats-back-button" class="button">Назад</button>
+                     <button id="reset-stats-button" class="button" style="border-color: var(--obstacle-color); color: var(--obstacle-color);">Сбросить</button>
+                </div>
+            </div>
+            
+            <div id="game-over-screen" class="ui-overlay hidden">
+                <h2>ИГРА ОКОНЧЕНА</h2>
+                <p id="final-score">Счет: <span>0</span></p>
+                <p id="new-highscore-msg" class="hidden">НОВЫЙ РЕКОРД!</p>
+                <button id="play-again-button" class="button">Играть снова</button>
+                <button id="main-menu-gameover-button" class="button">Главное меню</button>
+            </div>
+            
+            <div id="confirm-modal" class="ui-overlay hidden">
+                <div id="confirm-modal-content">
+                    <h2 class="title" style="font-size: 2.5rem;">Подтверждение</h2>
+                    <p id="confirm-modal-message"></p>
+                    <button id="confirm-yes-button" class="button">Да</button>
+                    <button id="confirm-no-button" class="button">Нет</button>
+                </div>
+            </div>
 
-        <!-- Игровое поле -->
-        <canvas id="gameCanvas"></canvas>
+            <!-- Игровой HUD -->
+            <div id="hud" class="hidden">
+               <div class="hud-item">Счет: <span id="score" class="score-value">0</span></div>
+               <div class="hud-item">Рекорд: <span id="highscore" class="highscore-value">0</span></div>
+            </div>
+
+            <!-- Игровое поле -->
+            <canvas id="gameCanvas"></canvas>
+             <button id="music-toggle">🔇</button>
+        </div>
         
         <!-- Кнопки управления -->
         <div id="controls-container" class="hidden">
@@ -320,7 +417,7 @@
                 <div id="d-pad-right" class="d-pad-button">►</div>
                 <div id="d-pad-down" class="d-pad-button">▼</div>
             </div>
-            <div class="pause-button-container">
+            <div class="action-buttons-container">
                  <button id="pause-button" class="control-button" title="Пауза (P)">❚❚</button>
             </div>
         </div>
@@ -359,31 +456,68 @@
             const highscoreEl = document.getElementById('highscore');
             const finalScoreEl = document.querySelector('#final-score span');
             const newHighscoreMsg = document.getElementById('new-highscore-msg');
-            const statsBestScore = document.getElementById('stats-best-score');
-            const statsGamesPlayed = document.getElementById('stats-games-played');
-            const statsFoodEaten = document.getElementById('stats-food-eaten');
+            const statsGrid = document.getElementById('stats-grid');
             const confirmModalMessage = document.getElementById('confirm-modal-message');
+            const difficultySelector = document.getElementById('difficulty-selector');
+            const musicToggleButton = document.getElementById('music-toggle');
 
             // --- Конфигурация игры ---
             let gridSize; 
             const tileCountX = 30; 
             const tileCountY = 30; 
             let snake, food, obstacles, score, direction, dx, dy, isPaused, isGameOver, animationFrameId;
-            let highscore = 0;
-            let stats = { gamesPlayed: 0, foodEaten: 0 };
-            const initialSpeed = 120;
+            
+            const difficultySettings = {
+                easy:   { speed: 150, obstacles: 0.01 },
+                normal: { speed: 120, obstacles: 0.02 },
+                hard:   { speed: 90,  obstacles: 0.03 }
+            };
+            let currentDifficulty = 'normal';
+            let initialSpeed = difficultySettings[currentDifficulty].speed;
             let currentSpeed = initialSpeed;
             let lastUpdateTime = 0;
             let confirmCallback = null;
+            let audioStarted = false;
             let isBannerVisible = false;
+
+            // --- Статистика ---
+            let stats;
+            const defaultStats = () => ({
+                easy: { highscore: 0, gamesPlayed: 0, foodEaten: 0 },
+                normal: { highscore: 0, gamesPlayed: 0, foodEaten: 0 },
+                hard: { highscore: 0, gamesPlayed: 0, foodEaten: 0 }
+            });
+
+            // --- Музыка ---
+            const synth = new Tone.FMSynth({
+                harmonicity: 3, modulationIndex: 10, detune: 0,
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.5 },
+                modulation: { type: "square" },
+                modulationEnvelope: { attack: 0.5, decay: 0.01, sustain: 1, release: 0.5 }
+            }).toDestination();
+            const reverb = new Tone.Reverb(0.5).toDestination();
+            synth.connect(reverb);
+            
+            const musicPatterns = [
+                ['C2', 'G2', 'C3', 'D3'], ['A#1', 'F2', 'A#2', 'C3'], ['F1', 'C2', 'F2', 'G#2']
+            ];
+            let currentPatternIndex = 0;
+            const musicLoop = new Tone.Sequence((time, note) => {
+                synth.triggerAttackRelease(note, '8n', time);
+            }, musicPatterns[0], '4n');
+            
+            Tone.Transport.scheduleRepeat(time => {
+                currentPatternIndex = (currentPatternIndex + 1) % musicPatterns.length;
+                musicLoop.events = musicPatterns[currentPatternIndex];
+            }, '4m');
 
             // --- Инициализация ---
             async function init() {
-                // Инициализация VK Bridge
                 if (typeof vkBridge !== 'undefined') {
                     vkBridge.send('VKWebAppInit');
                 }
-                await loadStats(); // Загружаем статы перед отрисовкой
+                await loadStats();
                 setupCanvas();
                 addEventListeners();
                 showScreen('main');
@@ -392,9 +526,7 @@
             function setupCanvas() {
                 const containerWidth = gameContainer.clientWidth;
                 const containerHeight = gameContainer.clientHeight;
-                const availableWidth = containerWidth;
-                const availableHeight = containerHeight - 150;
-                const maxCanvasSize = Math.min(availableWidth, availableHeight);
+                const maxCanvasSize = Math.min(containerWidth, containerHeight);
                 gridSize = Math.floor(maxCanvasSize / tileCountX);
                 canvas.width = tileCountX * gridSize;
                 canvas.height = tileCountY * gridSize;
@@ -402,10 +534,9 @@
 
             // --- Управление экранами и рекламой ---
             function showScreen(screenName) {
-                [mainMenu, statsScreen, pauseMenu, gameOverScreen, confirmModal].forEach(el => el.classList.add('hidden'));
-                hud.classList.add('hidden');
-                controlsContainer.classList.add('hidden');
-                canvas.classList.add('hidden');
+                [mainMenu, statsScreen, pauseMenu, gameOverScreen, confirmModal, hud, controlsContainer, canvas].forEach(el => {
+                    if (el) el.classList.add('hidden');
+                });
 
                 const nonGameScreens = ['main', 'stats', 'pause', 'gameover', 'confirm'];
                 if (nonGameScreens.includes(screenName)) {
@@ -417,45 +548,40 @@
                 switch (screenName) {
                     case 'main': mainMenu.classList.remove('hidden'); break;
                     case 'stats': updateStatsDisplay(); statsScreen.classList.remove('hidden'); break;
-                    case 'game': 
-                        hud.classList.remove('hidden');
-                        controlsContainer.classList.remove('hidden');
-                        canvas.classList.remove('hidden');
-                        break;
+                    case 'game': hud.classList.remove('hidden'); controlsContainer.classList.remove('hidden'); canvas.classList.remove('hidden'); break;
                     case 'pause': pauseMenu.classList.remove('hidden'); break;
                     case 'gameover': gameOverScreen.classList.remove('hidden'); break;
                     case 'confirm': confirmModal.classList.remove('hidden'); break;
                 }
             }
-            
+
             function showBannerAd() {
-                if (typeof vkBridge !== 'undefined' && !isBannerVisible) {
+                if (typeof vkBridge !== 'undefined' && vkBridge.supports('VKWebAppShowBannerAd') && !isBannerVisible) {
                     vkBridge.send('VKWebAppShowBannerAd', { banner_location: 'bottom' })
                         .then(() => isBannerVisible = true)
-                        .catch(error => console.error(error));
+                        .catch(error => console.error("Banner Ad Error:", error));
                 }
             }
 
             function hideBannerAd() {
-                if (typeof vkBridge !== 'undefined' && isBannerVisible) {
+                if (typeof vkBridge !== 'undefined' && vkBridge.supports('VKWebAppHideBannerAd') && isBannerVisible) {
                      vkBridge.send('VKWebAppHideBannerAd')
                         .then(() => isBannerVisible = false)
-                        .catch(error => console.error(error));
+                        .catch(error => console.error("Banner Ad Error:", error));
                 }
             }
 
             // --- Игровой процесс ---
             function startGame() {
-                isGameOver = false;
-                isPaused = false;
-                score = 0;
+                isGameOver = false; isPaused = false; score = 0;
+                initialSpeed = difficultySettings[currentDifficulty].speed;
                 currentSpeed = initialSpeed;
                 direction = 'right'; dx = 1; dy = 0;
                 snake = [{ x: Math.floor(tileCountX / 4), y: Math.floor(tileCountY / 2) }];
                 generateObstacles();
                 generateFood();
                 updateHud();
-                stats.gamesPlayed++;
+                stats[currentDifficulty].gamesPlayed++;
                 saveStats();
                 showScreen('game');
                 lastUpdateTime = 0;
@@ -484,8 +610,8 @@
                 snake.unshift(head);
                 if (head.x === food.x && head.y === food.y) {
                     score++;
-                    stats.foodEaten++;
-                    currentSpeed = Math.max(50, currentSpeed - 2);
+                    stats[currentDifficulty].foodEaten++;
+                    currentSpeed = Math.max(40, currentSpeed - 1.5);
                     saveStats();
                     generateFood();
                 } else {
@@ -497,8 +623,8 @@
             function gameOver() {
                 isGameOver = true;
                 cancelAnimationFrame(animationFrameId);
-                if (score > highscore) {
-                    highscore = score;
+                if (score > stats[currentDifficulty].highscore) {
+                    stats[currentDifficulty].highscore = score;
                     newHighscoreMsg.classList.remove('hidden');
                 } else {
                     newHighscoreMsg.classList.add('hidden');
@@ -519,7 +645,8 @@
             
             function generateObstacles() {
                 obstacles = [];
-                const obstacleCount = Math.floor((tileCountX * tileCountY) / 100);
+                const obstaclePercentage = difficultySettings[currentDifficulty].obstacles;
+                const obstacleCount = Math.floor(tileCountX * tileCountY * obstaclePercentage);
                 for(let i = 0; i < obstacleCount; i++) {
                     let obstacle;
                      do { obstacle = { x: Math.floor(Math.random() * tileCountX), y: Math.floor(Math.random() * tileCountY) }; }
@@ -557,63 +684,82 @@
             }
             
             // --- Управление ---
-            function changeDirection(newDx, newDy, newDirection) {
+            function changeDirection(newDx, newDy) {
                 if (isPaused || isGameOver || (dx === -newDx && dy === -newDy)) return;
-                dx = newDx; dy = newDy; direction = newDirection;
+                dx = newDx; dy = newDy;
             }
 
             function handleKeyDown(e) {
                 const key = e.key.toLowerCase();
                 if(key === 'p') { isPaused ? resumeGame() : pauseGame(); return; }
                 switch (key) {
-                    case 'arrowup': case 'w': changeDirection(0, -1, 'up'); break;
-                    case 'arrowdown': case 's': changeDirection(0, 1, 'down'); break;
-                    case 'arrowleft': case 'a': changeDirection(-1, 0, 'left'); break;
-                    case 'arrowright': case 'd': changeDirection(1, 0, 'right'); break;
+                    case 'arrowup': case 'w': changeDirection(0, -1); break;
+                    case 'arrowdown': case 's': changeDirection(0, 1); break;
+                    case 'arrowleft': case 'a': changeDirection(-1, 0); break;
+                    case 'arrowright': case 'd': changeDirection(1, 0); break;
                 }
             }
 
             // --- UI и Статистика ---
-            function updateHud() { scoreEl.textContent = score; highscoreEl.textContent = highscore; }
+            function updateHud() { 
+                scoreEl.textContent = score; 
+                highscoreEl.textContent = stats[currentDifficulty].highscore;
+            }
             function updateStatsDisplay() {
-                statsBestScore.textContent = highscore;
-                statsGamesPlayed.textContent = stats.gamesPlayed;
-                statsFoodEaten.textContent = stats.foodEaten;
+                statsGrid.innerHTML = '';
+                const difficultyNames = { easy: 'Новичок', normal: 'Профи', hard: 'Киберпанк' };
+                for (const diff in stats) {
+                    const card = document.createElement('div');
+                    card.className = 'stats-card';
+                    card.innerHTML = `
+                        <h3>${difficultyNames[diff]}</h3>
+                        <p>Рекорд: <span>${stats[diff].highscore}</span></p>
+                        <p>Игр сыграно: <span>${stats[diff].gamesPlayed}</span></p>
+                        <p>Еды съедено: <span>${stats[diff].foodEaten}</span></p>
+                    `;
+                    statsGrid.appendChild(card);
+                }
             }
             async function saveStats() { 
-                const dataToSave = JSON.stringify({ highscore, stats });
+                const dataToSave = JSON.stringify(stats);
                 try {
-                    if (typeof vkBridge !== 'undefined') {
-                        await vkBridge.send('VKWebAppStorageSet', { key: 'cyberSnake3000_stats', value: dataToSave });
+                    if (typeof vkBridge !== 'undefined' && vkBridge.supports('VKWebAppStorageSet')) {
+                        await vkBridge.send('VKWebAppStorageSet', { key: 'cyberSnake3000_stats_v2', value: dataToSave });
                     } else {
-                        localStorage.setItem('cyberSnake3000_stats', dataToSave); 
+                        localStorage.setItem('cyberSnake3000_stats_v2', dataToSave); 
                     }
                 } catch (e) {
                     console.error("Не удалось сохранить статистику. Fallback to localStorage.", e);
-                    localStorage.setItem('cyberSnake3000_stats', dataToSave);
+                    localStorage.setItem('cyberSnake3000_stats_v2', dataToSave);
                 }
             }
             async function loadStats() {
                 try {
                     let data = null;
-                    if (typeof vkBridge !== 'undefined') {
-                        const vkData = await vkBridge.send('VKWebAppStorageGet', { keys: ['cyberSnake3000_stats'] });
-                        if (vkData.keys[0].value) {
+                    if (typeof vkBridge !== 'undefined' && vkBridge.supports('VKWebAppStorageGet')) {
+                        const vkData = await vkBridge.send('VKWebAppStorageGet', { keys: ['cyberSnake3000_stats_v2'] });
+                        if (vkData.keys && vkData.keys[0].value) {
                             data = JSON.parse(vkData.keys[0].value);
                         }
                     } 
                     if (!data) {
-                        data = JSON.parse(localStorage.getItem('cyberSnake3000_stats'));
+                        data = JSON.parse(localStorage.getItem('cyberSnake3000_stats_v2'));
                     }
-                    if (data) { highscore = data.highscore || 0; stats = data.stats || { gamesPlayed: 0, foodEaten: 0 }; }
-                } catch (e) {
-                    console.error("Не удалось загрузить статистику.", e);
+                    stats = data && typeof data === 'object' ? data : defaultStats();
+                    // Убедимся, что все уровни сложности присутствуют
+                    for (const diff in defaultStats()) {
+                        if (!stats[diff]) {
+                            stats[diff] = defaultStats()[diff];
+                        }
+                    }
+                } catch (e) { 
+                    stats = defaultStats();
+                    console.error("Не удалось загрузить статистику.", e); 
                 }
             }
             function resetAllStats() {
                 showConfirmModal("Вы уверены, что хотите сбросить всю статистику? Это действие необратимо.", () => {
-                    highscore = 0;
-                    stats = { gamesPlayed: 0, foodEaten: 0 };
+                    stats = defaultStats();
                     saveStats();
                     updateStatsDisplay();
                     showScreen('stats');
@@ -630,7 +776,18 @@
             function addEventListeners() {
                 window.addEventListener('resize', setupCanvas);
                 document.addEventListener('keydown', handleKeyDown);
-                playButton.addEventListener('click', startGame);
+                document.addEventListener('contextmenu', e => e.preventDefault());
+
+                playButton.addEventListener('click', async () => {
+                    if (!audioStarted) {
+                        try {
+                           await Tone.start();
+                           audioStarted = true;
+                        } catch(e) { console.error('Could not start audio context', e); }
+                    }
+                    startGame();
+                });
+
                 statsButton.addEventListener('click', () => showScreen('stats'));
                 statsBackButton.addEventListener('click', () => showScreen('main'));
                 resetStatsButton.addEventListener('click', resetAllStats);
@@ -642,10 +799,36 @@
                 pauseButton.addEventListener('click', () => { isPaused ? resumeGame() : pauseGame(); });
                 confirmYesButton.addEventListener('click', () => { if (confirmCallback) confirmCallback(); });
                 confirmNoButton.addEventListener('click', () => showScreen('stats'));
-                dPadUp.addEventListener('click', () => changeDirection(0, -1, 'up'));
-                dPadDown.addEventListener('click', () => changeDirection(0, 1, 'down'));
-                dPadLeft.addEventListener('click', () => changeDirection(-1, 0, 'left'));
-                dPadRight.addEventListener('click', () => changeDirection(1, 0, 'right'));
+                
+                dPadUp.addEventListener('click', () => changeDirection(0, -1));
+                dPadDown.addEventListener('click', () => changeDirection(0, 1));
+                dPadLeft.addEventListener('click', () => changeDirection(-1, 0));
+                dPadRight.addEventListener('click', () => changeDirection(1, 0));
+
+                difficultySelector.addEventListener('click', (e) => {
+                    const button = e.target.closest('.difficulty-button');
+                    if (button) {
+                        currentDifficulty = button.dataset.difficulty;
+                        document.querySelectorAll('.difficulty-button').forEach(btn => btn.classList.remove('selected'));
+                        button.classList.add('selected');
+                    }
+                });
+
+                musicToggleButton.addEventListener('click', async () => {
+                    if (!audioStarted) {
+                        await Tone.start();
+                        audioStarted = true;
+                    }
+                    if (Tone.Transport.state === 'started') {
+                        Tone.Transport.stop();
+                        musicLoop.stop();
+                        musicToggleButton.textContent = '🔇';
+                    } else {
+                        Tone.Transport.start();
+                        musicLoop.start(0);
+                        musicToggleButton.textContent = '🎵';
+                    }
+                });
             }
 
             // --- Запуск ---
