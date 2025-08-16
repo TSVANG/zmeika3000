@@ -438,6 +438,7 @@
             let lastUpdateTime = 0;
             let confirmCallback = null;
             let isBannerVisible = false;
+            let lossCounter = 0; // Счетчик проигрышей для рекламы
 
             // --- Статистика ---
             let stats;
@@ -492,6 +493,20 @@
                 }
             }
             
+            function showInterstitialAd() {
+                if (typeof vkBridge !== 'undefined' && vkBridge.supports('VKWebAppShowNativeAds')) {
+                    vkBridge.send('VKWebAppCheckNativeAds', { ad_format: 'interstitial' })
+                        .then((data) => {
+                            if (data.result) {
+                                vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'interstitial' });
+                            } else {
+                                console.log('Interstitial ad not ready');
+                            }
+                        })
+                        .catch(error => console.error("Interstitial Ad Check Error:", error));
+                }
+            }
+
             // --- Игровой процесс ---
             function startGame() {
                 isGameOver = false; score = 0;
@@ -544,6 +559,13 @@
             function gameOver() {
                 isGameOver = true;
                 cancelAnimationFrame(animationFrameId);
+
+                lossCounter++; // Увеличиваем счетчик проигрышей
+                if (lossCounter >= 4) {
+                    showInterstitialAd();
+                    lossCounter = 0; // Сбрасываем счетчик
+                }
+
                 if (score > stats[currentDifficulty].highscore) {
                     stats[currentDifficulty].highscore = score;
                     newHighscoreMsg.classList.remove('hidden');
@@ -714,6 +736,7 @@
                         currentDifficulty = button.dataset.difficulty;
                         document.querySelectorAll('.difficulty-button').forEach(btn => btn.classList.remove('selected'));
                         button.classList.add('selected');
+                        lossCounter = 0; // Сбрасываем счетчик при смене сложности
                     }
                 });
             }
@@ -724,5 +747,3 @@
     </script>
 </body>
 </html>
-
-
